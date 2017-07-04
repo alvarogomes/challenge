@@ -1,113 +1,36 @@
-class Payment
-  attr_reader :authorization_number, :amount, :invoice, :order, :payment_method, :paid_at
+require_relative 'classes/vo/cliente'
+require_relative 'classes/vo/endereco'
+require_relative 'classes/vo/produto'
+require_relative 'classes/tipos/produto/assinatura'
+require_relative 'classes/tipos/produto/produto_fisico'
+require_relative 'classes/tipos/produto/midia_digital'
+require_relative 'classes/tipos/produto/livro'
 
-  def initialize(attributes = {})
-    @authorization_number, @amount = attributes.values_at(:authorization_number, :amount)
-    @invoice, @order = attributes.values_at(:invoice, :order)
-    @payment_method = attributes.values_at(:payment_method)
-  end
+require_relative 'classes/tipos/pagamento/cartao_credito'
+require_relative 'classes/servico/venda'
 
-  def pay(paid_at = Time.now)
-    @amount = order.total_amount
-    @authorization_number = Time.now.to_i
-    @invoice = Invoice.new(billing_address: order.address, shipping_address: order.address, order: order)
-    @paid_at = paid_at
-    order.close(@paid_at)
-  end
 
-  def paid?
-    !paid_at.nil?
-  end
-end
+#dados do cliente...
+clienteOnline = Cliente.new(nome:"Fulano da silva",
+                            endereco:Endereco.new(endereco:"RUA X",
+                                                  complemento:"",
+                                                  bairro:"CENTRO",
+                                                  cep:"6500000"),
+                            email:"fulano@gmail.com")
 
-class Invoice
-  attr_reader :billing_address, :shipping_address, :order
 
-  def initialize(attributes = {})
-    @billing_address = attributes.values_at(:billing_address)
-    @shipping_address = attributes.values_at(:shipping_address)
-    @order = attributes.values_at(:order)
-  end
-end
+#Criando lista de pedidos...
 
-class Order
-  attr_reader :customer, :items, :payment, :address, :closed_at
+listaProdutos = []
+listaProdutos << Produto.new(nome: "Assinatura Mundo Java", tipo: Assinatura.new , valor:40.0)
+listaProdutos << Produto.new(nome: "Cracking the Interview",tipo: Livro.new,valor:100.0)
+listaProdutos << Produto.new(nome: "Pendrive 8Gb",tipo: ProdutoFisico.new,valor:15.0)
+listaProdutos << Produto.new(nome: "Despacito - Musica",tipo: MidiaDigital.new,valor:2.5)
 
-  def initialize(customer, overrides = {})
-    @customer = customer
-    @items = []
-    @order_item_class = overrides.fetch(:item_class) { OrderItem }
-    @address = overrides.fetch(:address) { Address.new(zipcode: '45678-979') }
-  end
+#metodo de pagamento...
 
-  def add_product(product)
-    @items << @order_item_class.new(order: self, product: product)
-  end
+metodoPagamento = CartaoDeCredito.new
 
-  def total_amount
-    @items.map(&:total).inject(:+)
-  end
-
-  def close(closed_at = Time.now)
-    @closed_at = closed_at
-  end
-
-  # remember: you can create new methods inside those classes to help you create a better design
-end
-
-class OrderItem
-  attr_reader :order, :product
-
-  def initialize(order:, product:)
-    @order = order
-    @product = product
-  end
-
-  def total
-    10
-  end
-end
-
-class Product
-  # use type to distinguish each kind of product: physical, book, digital, membership, etc.
-  attr_reader :name, :type
-
-  def initialize(name:, type:)
-    @name, @type = name, type
-  end
-end
-
-class Address
-  attr_reader :zipcode
-
-  def initialize(zipcode:)
-    @zipcode = zipcode
-  end
-end
-
-class CreditCard
-  def self.fetch_by_hashed(code)
-    CreditCard.new
-  end
-end
-
-class Customer
-  # you can customize this class by yourself
-end
-
-class Membership
-  # you can customize this class by yourself
-end
-
-# Book Example (build new payments if you need to properly test it)
-foolano = Customer.new
-book = Product.new(name: 'Awesome book', type: :book)
-book_order = Order.new(foolano)
-book_order.add_product(book)
-
-payment_book = Payment.new(order: book_order, payment_method: CreditCard.fetch_by_hashed('43567890-987654367'))
-payment_book.pay
-p payment_book.paid? # < true
-p payment_book.order.items.first.product.type
-
-# now, how to deal with shipping rules then?
+#Executando a venda...
+v = Venda.new(cliente: clienteOnline , produtos: listaProdutos, pagamento: metodoPagamento)
+v.executar()
