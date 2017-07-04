@@ -1,7 +1,7 @@
 ## Desafio para Backend Software Engineer 
 
 Bom... mesmo Ruby não sendo minha linguagem mais forte (sou Expert em Java), mas acredito que a Creditas vale o esforço, 
-implementei este desafio criando um serviço parecido com uma API do PayPal.
+implementei este desafio criando um serviço parecido com uma API do PayPal (Ou seja apaguei o código original e fiz tudo do zero =X).
 
 Na implementação do servico "Venda" você deve informar os dados do cliente,
 os produtos que o mesmo está comprando e a forma de pagamento.
